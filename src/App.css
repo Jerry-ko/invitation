@@ -1,13 +1,106 @@
 @import "tailwindcss";
 
+:root {
+  --font-size: 16px;
+}
+
+body {
+  font-family: "GowunDodum";
+}
+
 @font-face {
-  font-family: "Pinyon_Script";
+  font-family: "Pinyon";
   font-style: normal;
   font-weight: 400;
   src: url(/fonts/PinyonScript-Regular.woff) format("woff");
 }
 
+@font-face {
+  font-family: "DancingScript";
+  font-style: normal;
+  font-weight: 400;
+  src: url(/fonts/DancingScript-Regular.woff) format("woff");
+}
+
+@font-face {
+  font-family: "NotoSans";
+  font-style: normal;
+  font-weight: 100 900;
+  src: url(/fonts/NotoSans-VariableFont_wdth_wght.woff2) format("woff2");
+}
+
+@font-face {
+  font-family: "BomBaram";
+  font-style: normal;
+  src: url(/fonts/HSBombaram.woff) format("woff");
+}
+
+@font-face {
+  font-family: "GowunDodum";
+  font-style: normal;
+  font-weight: 400;
+  src: url(/fonts/GowunDodum-Regular.woff) format("woff");
+}
+
 @theme {
-  --font-pinyon: "Pinyon_Script", ui-sans-serif, system-ui, sans-serif;
-  --color-mint-500: oklch(0.72 0.04 180);
+  --font-pinyon: "Pinyon", ui-sans-serif, system-ui, sans-serif;
+  --font-dancing: "DancingScript", ui-sans-serif, system-ui, sans-serif;
+  --font-noto-sans: "NotoSans", ui-sans-serif, system-ui, sans-serif;
+  --font-bombaram: "BomBaram", ui-sans-serif, system-ui, sans-serif;
+  --font-gowundodum: "GowunDodum", sans-serif;
+  --color-main-gray: #f8f8f8;
+  --color-main-green: #032e15;
+  --color-main-pink: #f0424b;
+}
+
+html {
+  font-size: calc(var(--font-size) * 430 / 390);
+}
+
+@media (min-width: 150px) and (max-width: 360px) {
+  html {
+    font-size: calc(var(--font-size) * 360 / 390);
+  }
+}
+
+@media (min-width: 361px) and (max-width: 370px) {
+  html {
+    font-size: calc(var(--font-size) * 370 / 390);
+  }
+}
+
+@media (min-width: 371px) and (max-width: 380px) {
+  html {
+    font-size: calc(var(--font-size) * 380 / 390);
+  }
+}
+
+@media (min-width: 381px) and (max-width: 390px) {
+  html {
+    font-size: calc(var(--font-size) * 390 / 390);
+  }
+}
+
+@media (min-width: 391px) and (max-width: 400px) {
+  html {
+    font-size: calc(var(--font-size) * 400 / 390);
+  }
+}
+
+@media (min-width: 401px) and (max-width: 410px) {
+  html {
+    font-size: calc(var(--font-size) * 410 / 390);
+  }
+}
+
+@media (min-width: 411px) and (max-width: 420px) {
+  html {
+    font-size: calc(var(--font-size) * 420 / 390);
+  }
+}
+
+@media (min-width: 421px) and (max-width: 430px) {
+  html {
+    font-size: calc(var(--font-size) * 430 / 390);
+  }
 }

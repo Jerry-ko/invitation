@@ -3,23 +3,34 @@ import "./App.css";
 function App() {
   return (
     <>
-      <div className="flex justify-center bg-[#f8f8f8]">
-        <div className="pb-20 w-[420px] bg-white">
+      <div id="app" className="bg-main-gray">
+        <main className="mx-auto w-full max-w-[430px] bg-white">
           {/* 메인 이미지 */}
-          <div className="h-[700px] bg-cover bg-[url(/wedding.jpg)]">
-            <div className="flex justify-center items-end h-full">
-              <p className="text-5xl text-center mb-50 text-[#fe7f9c] font-pinyon">
-                we're getting <br /> married!
-              </p>
+          <figure className="relative w-full h-screen bg-cover bg-[url(/couple.jpg)]">
+            <div className="relative flex justify-between p-4 text-main-pink font-noto-sans font-light">
+              <span>LEE JIEUN</span> <span>PARK BOGUM</span>
             </div>
-          </div>
-          {/* 간략한 인사 */}
-          <div className="flex flex-col justify-center items-center h-[350px] whitespace-nowrap text-center">
-            <p className="mb-3 text-lg text-green-950">
-              소중한 분들을 초대합니다
-            </p>
-
             <div>
+              <div className="mx-auto text-[4rem] leading-18 text-center text-main-pink font-dancing">
+                we're getting <br /> married!
+              </div>
+            </div>
+
+            <div className="absolute bottom-5 w-full text-center text-main-pink font-bombaram">
+              <p>2025.01.23 SAT 11:00</p>
+              <p>더 살롱드 웨딩홀</p>
+            </div>
+          </figure>
+          {/* <div className="relative max-h-[700px]">
+            <img className="w-full h-full" src={wedding} alt="" />
+          </div> */}
+          {/* 간략한 인사 */}
+          <article className="flex flex-col justify-center items-center px-4 py-20 min-h-[500px] text-center">
+            <header className="mb-10 text-[1.1rem] text-main-green">
+              소중한 분들을 초대합니다
+            </header>
+
+            <span className="text-[0.9rem]">
               오랜 기다림 속에서 저희 두 사람,
               <br />
               한 마음 되어 참된 사랑의 결실을
@@ -33,42 +44,60 @@ function App() {
               <br />
               혹여 참석이 어려우시더라도 부담 갖지 마시고,
               <br /> 마음으로 축하해주시면 감사하겠습니다.
-            </div>
-          </div>
-          {/* 신랑신부 소개 */}
-          <div className="flex flex-col justify-center items-center h-[100px]">
-            <div className="flex items-center">
-              <p className="text-sm">신랑부&#183;신랑모 의 장남</p>
-              <p className="w-3"></p>{" "}
-              <span className="mr-1 text-sm text-[#147bb7]">신랑</span>
-              <p>김준모</p>
-            </div>
-            <div className="flex items-center">
-              <p className="text-sm">신부부&#183;신부모 의 장녀</p>
-              <p className="w-3"></p>
-              <span className="mr-1 text-sm text-pink-300">신부</span>{" "}
-              <p>김준모</p>
-            </div>
-          </div>
+            </span>
+
+            {/* 신랑신부 소개 */}
+            <article className="flex flex-col justify-center items-center mt-10">
+              <div className="flex justify-between items-center flex-wrap max-w-[240px]">
+                <span>신랑부</span>&#183;
+                <span>신랑모</span>
+                <span className="text-[0.8rem]">
+                  의<span className="inline-block min-w-8">아들</span>
+                </span>
+                <p className="w-3"></p> <span>보검</span>
+              </div>
+              <div className="flex justify-between items-center flex-wrap max-w-[240px]">
+                <span>신랑부</span>&#183;
+                <span>신랑모</span>
+                <span className="text-[0.8rem]">
+                  의<span className="inline-block min-w-8">딸</span>
+                </span>
+                <p className="w-3"></p>
+                <span>지은</span>
+              </div>
+            </article>
+          </article>
+
           {/* 일시, 장소, 캘린더 */}
 
-          <div className="flex flex-col justify-center items-center h-[200px]">
-            <p className="mb-3 text-lg text-green-950">예식안내</p>
-            <p>2025년 5월 18일 일요일 오후 1시 30분</p>
-            <p>더살롱드웨딩홀 1층 레터홀</p>
-          </div>
-
-          <div className="w-full h-[300px] bg-green-600">캘린더</div>
+          <article className="flex flex-col justify-center items-center px-4 py-10">
+            <header className="mb-3 text-[1.1rem] text-main-green">
+              예식안내
+            </header>
+            <span className="text-[0.9rem]">
+              2025년 5월 18일 일요일 오후 1시 30분
+            </span>
+            <span className="text-[0.9rem]">더살롱드웨딩홀 1층 레터홀</span>
+            <div className="mt-10 w-full h-[300px] bg-green-600">캘린더</div>
+          </article>
 
           {/* 약도 */}
-          <div className="flex flex-col justify-center items-center mt-20">
-            <p className="mb-20 text-lg text-green-950">오시는 길</p>
-            <p>더 살롱드 웨딩홀</p>
-            <p>1층 레터홀</p>
-            <p>제주특별자치도 서귀포시 서호동</p>
+          <article className="flex flex-col justify-center items-center px-4 py-10">
+            <header className="mb-10 text-[1.1rem] text-main-green">
+              오시는 길
+            </header>
+            <span>더 살롱드 웨딩홀</span>
+            <span className="text-[0.9rem]">1층 레터홀</span>
+            <span className="text-[0.9rem]">
+              제주특별자치도 서귀포시 서호동
+            </span>
             <div className="w-full h-[300px] mt-8 bg-orange-400">지도</div>
-          </div>
-        </div>
+          </article>
+
+          <footer className="py-6 text-center text-[0.6rem]">
+            <p>Copyright 2025</p>
+          </footer>
+        </main>
       </div>
     </>
   );
