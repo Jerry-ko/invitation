@@ -49,8 +49,23 @@ body {
   --font-bombaram: "BomBaram", ui-sans-serif, system-ui, sans-serif;
   --font-gowundodum: "GowunDodum", sans-serif;
   --color-main-gray: #f8f8f8;
-  --color-main-green: #032e15;
+  --color-semi-deep-gray: #d2d2d2;
+  --color-deep-gray: #929292;
   --color-main-pink: #f0424b;
+  --color-light-pink: #f36363;
+
+  --animate-fade-up: fade-up 1s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from {
+      transform: translateY(50deg);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0deg);
+      opacity: 1;
+    }
+  }
 }
 
 html {
@@ -103,4 +118,17 @@ html {
   html {
     font-size: calc(var(--font-size) * 430 / 390);
   }
+}
+
+.scroll-section:not(:first-child) {
+  opacity: 0;
+  transform: translateY(50px);
+  transition-property: opacity, transform;
+  transition-duration: 0.3s;
+  transition-timing-function: linear;
+}
+
+.scroll-section:not(:first-child).fade-up {
+  opacity: 1;
+  transform: translateY(0);
 }
