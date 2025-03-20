@@ -1,19 +1,129 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
 
+const initSceneInfo = [
+  {
+    scrollHeight: 0,
+  },
+  {
+    scrollHeight: 0,
+  },
+  {
+    scrollHeight: 0,
+  },
+  {
+    scrollHeight: 0,
+  },
+];
+
 function App() {
-  const [calendar, setCalendar] = useState<(number | null)[][]>([]);
+  const [calendar, setCalendar] = useState<(number | null)[][] | null>(null);
   const [weddingDay, setWeddingDay] = useState(1);
-  const [data, setDate] = useState([
-    [1, 2, 3, 4],
-    [1, 3, 4, 5, 7, 0],
-    [4, 5, 6, 7],
-    [3, 4, 5, 6],
-  ]);
+  const [sceneInfo, setSceneInfo] = useState(initSceneInfo);
+  const [currentScene, setCurrentScene] = useState(0);
+  const [path, setPath] = useState<string>("");
+  const [initText, setInitText] = useState(
+    "Quick brown fox jumps over the lazy dog."
+  );
+  const [text, setText] = useState(initText);
+  const [maxTextWidth, setMaxTextWidth] = useState(0);
+  const [movedDistance, setMovedDistance] = useState(0);
+
+  let yOffset = 0;
+  let prevScrollHeight = 0;
 
   const week = ["일", "월", "화", "수", "목", "금", "토"];
 
+  useEffect(() => {
+    const textPath = document.querySelector("textPath");
+    if (textPath) {
+      const textlength = textPath.getComputedTextLength();
+      setMaxTextWidth(textlength);
+    }
+  }, [initText, text]);
+
+  useEffect(() => {
+    if (movedDistance > maxTextWidth) {
+      setText((t) => `${t} ${t}`);
+    }
+  }, [movedDistance, maxTextWidth]);
+
+  //살펴보기기기
+  useEffect(() => {
+    if (currentScene != 0) return;
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDrawing = true;
+      lastX = e.offsetX;
+      lastY = e.offsetY;
+      const init = `M ${lastX} ${lastY} `;
+      setText(initText);
+      setPath((a) => a + init);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDrawing) {
+        const x = e.offsetX;
+        const y = e.offsetY;
+
+        const path = document.querySelector("path");
+        let movedDistance = path?.getTotalLength() ?? 0;
+
+        setMovedDistance(movedDistance);
+        setPath((prevPath) => prevPath + `L ${x} ${y}`);
+
+        // Draw(x, y);
+      }
+    };
+
+    const handleMouseUp = () => {
+      isDrawing = false;
+    };
+
+    /* div를 이용해 선을 그리려고 한 경우
+     : 피타고라스의 정리와 직선의 기울기 이용 */
+    // const Draw = (x: number, y: number) => {
+    //   const line = document.createElement("div");
+    //   line.classList.add("line");
+
+    //   line.style.left = `${lastX - 25}px`;
+    //   line.style.top = `${lastY - 25}px`;
+
+    //   targetScene?.appendChild(line);
+
+    //   if (lastX !== x || lastY !== y) {
+    //     const distance = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
+    //     const angle = Math.atan2(y - lastY, x - lastX);
+
+    //     line.style.width = `${line.offsetWidth + distance + 10}px`;
+    //     line.style.transform = `rotate(${angle}rad)`;
+    //   }
+
+    //   lastX = x;
+    //   lastY = y;
+    // };
+
+    const targetScene = document.getElementById("canvas");
+
+    targetScene?.addEventListener("mousedown", handleMouseDown);
+    targetScene?.addEventListener("mousemove", handleMouseMove);
+    targetScene?.addEventListener("mouseup", handleMouseUp);
+    targetScene?.addEventListener("mouseleave", handleMouseUp);
+
+    return () => {
+      targetScene?.removeEventListener("mousedown", handleMouseDown);
+      targetScene?.removeEventListener("mousemove", handleMouseMove);
+      targetScene?.removeEventListener("mouseup", handleMouseUp);
+      targetScene?.removeEventListener("mouseleave", handleMouseUp);
+    };
+  }, [currentScene]);
+
+  // todo: 커스텀 훅 추출
+  // 데이터 페칭 시 react router 또는 react query 사용
   useEffect(() => {
     // 결혼식이 20205.10.12일 경우
     const currentWeddingDay = 26;
@@ -58,9 +168,81 @@ function App() {
         arr[j].push(null);
       }
     }
+
     setCalendar(arr);
     setWeddingDay(currentWeddingDay);
   }, []);
+
+  // todo: 커스텀 훅으로 추출
+  useEffect(() => {
+    function refresh() {
+      const sectionList = document.querySelectorAll("scroll-section");
+      sectionList.forEach((el) => {
+        el.classList.remove("fade-up");
+      });
+      window.scrollTo(0, 0);
+    }
+    window.addEventListener("beforeunload", refresh);
+    window.addEventListener("resize", setLayout);
+
+    return () => {
+      window.removeEventListener("beforeunload", refresh);
+      window.removeEventListener("resize", setLayout);
+    };
+  }, []);
+
+  // todo: 커스텀 훅으로 추출
+  useEffect(() => {
+    setLayout();
+  }, [calendar, weddingDay]);
+
+  //살펴보기기기기
+  // todo: 커스텀 훅으로 추출
+  useEffect(() => {
+    function scrollLoop() {
+      prevScrollHeight = 0;
+
+      for (let i = 0; i < currentScene; i++) {
+        prevScrollHeight += sceneInfo[i]?.scrollHeight;
+      }
+
+      if (yOffset > prevScrollHeight + sceneInfo[currentScene]?.scrollHeight) {
+        setCurrentScene(currentScene + 1);
+      }
+      if (yOffset < prevScrollHeight) {
+        if (currentScene == 0) return;
+        setCurrentScene(currentScene - 1);
+      }
+    }
+    function handleScroll() {
+      yOffset = window.scrollY;
+
+      scrollLoop();
+
+      if (yOffset > sceneInfo[0].scrollHeight * 0.3) {
+        document.getElementById("scroll-section-1")?.classList.add("fade-up");
+      }
+
+      if (yOffset > sceneInfo[0].scrollHeight) {
+        document.getElementById("scroll-section-2")?.classList.add("fade-up");
+      }
+
+      if (
+        yOffset >
+        sceneInfo[0].scrollHeight +
+          sceneInfo[2].scrollHeight +
+          sceneInfo[1].scrollHeight * 0.6
+      ) {
+        document.getElementById("scroll-section-3")?.classList.add("fade-up");
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [sceneInfo, currentScene]);
 
   //네이버 지도 geocode api 사용할 시 서버 구성해야함
   useEffect(() => {
@@ -84,76 +266,30 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    setLayout();
-    let yOffset = 0;
-
-    window.addEventListener("scroll", () => {
-      yOffset = window.scrollY;
-      console.log(sceneInfo[0].scrollHeight);
-
-      if (yOffset > sceneInfo[0].scrollHeight * 0.3) {
-        document.getElementById("scroll-section-1")?.classList.add("fade-up");
-      }
-
-      if (yOffset > sceneInfo[0].scrollHeight * 0.7) {
-        document.getElementById("scroll-section-2")?.classList.add("fade-up");
-      }
-
-      if (
-        yOffset >
-        sceneInfo[0].scrollHeight +
-          sceneInfo[2].scrollHeight +
-          sceneInfo[1].scrollHeight * 0.5
-      ) {
-        document.getElementById("scroll-section-3")?.classList.add("fade-up");
-      }
-    });
-  }, []);
-
   const clickNaverMap = () => {
     window.open(
       "http://map.naver.com/p?title=그랜드워커힐&lng=127.11170683593&lat=37.5586287308609&zoom=15&type=0&c=15.00,0,0,0,dh",
       "_blank"
     );
   };
-
   const clickKakaoMap = () => {};
-
   const clickTMap = () => {};
 
-  const sceneInfo = [
-    {
-      scrollHeight: 0,
-    },
-    {
-      scrollHeight: 0,
-    },
-    {
-      scrollHeight: 0,
-    },
-    {
-      scrollHeight: 0,
-    },
-  ];
-
+  // todo: 커스텀 훅으로 추출 후 각 useEffect에서 사용
+  // 매번 재렌더링 시 새로 생성됨
+  // 만약 useEffect에서 의존성으로 삼고 있다면 불필요하게 실행될 수 있음
   function setLayout() {
+    const updatedSceneInfo = sceneInfo.map((_, index) => ({
+      scrollHeight: document.getElementById(`scroll-section-${index}`)!
+        .scrollHeight,
+    }));
     for (let i = 0; i < sceneInfo.length; i++) {
       sceneInfo[i].scrollHeight = document.getElementById(
         `scroll-section-${i}`
       )!.scrollHeight;
     }
+    setSceneInfo(updatedSceneInfo);
   }
-
-  window.addEventListener("resize", setLayout);
-
-  window.addEventListener("beforeunload", () => {
-    const sectionList = document.querySelectorAll("scroll-section");
-    sectionList.forEach((el) => {
-      el.classList.remove("fade-up");
-    });
-    window.scrollTo(0, 0);
-  });
 
   return (
     <>
@@ -161,21 +297,44 @@ function App() {
         <main className="mx-auto w-full max-w-[430px] bg-white">
           {/* 메인 이미지 */}
           <div id="scroll-section-0" className="scroll-section couple">
-            <figure className="relative w-full h-screen bg-cover bg-[url(/couple.jpg)]">
-              <div className="relative flex justify-between p-4 text-main-pink font-noto-sans font-light">
-                <span>LEE JIEUN</span> <span>PARK BOGUM</span>
-              </div>
-              <div>
-                <div className="mx-auto text-[4rem] leading-18 text-center text-main-pink font-dancing">
-                  we're getting <br /> married!
+            <div id="canvas">
+              <figure className="relative w-full h-screen bg-cover bg-center bg-[url(/couple.jpg)]">
+                <div className="relative flex justify-between p-4 text-main-pink font-noto-sans font-light">
+                  <span>LEE JIEUN</span> <span>PARK BOGUM</span>
                 </div>
-              </div>
+                <div>
+                  <div className="mx-auto text-[4rem] leading-18 text-center text-main-pink font-dancing">
+                    <p className="slideIn"> we're getting</p>
+                    <p className="slideIn"> married!</p>
 
-              <div className="absolute bottom-5 w-full text-center text-main-pink font-bombaram">
-                <p>2025.01.23 SAT 11:00</p>
-                <p>더 살롱드 웨딩홀</p>
-              </div>
-            </figure>
+                    {/* we're getting <br /> married! */}
+                  </div>
+                </div>
+
+                <div className="absolute bottom-5 w-full text-center text-main-pink font-bombaram">
+                  <p>2025.01.23 SAT 11:00</p>
+                  <p>더 살롱드 웨딩홀</p>
+                </div>
+                <svg
+                  width="100%"
+                  height="100%"
+                  className="absolute top-0 left-0"
+                >
+                  <path
+                    id="MyPath"
+                    d={path}
+                    // stroke="red"
+                    // strokeWidth={8}
+                    fill="none"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  />
+                  <text>
+                    <textPath href="#MyPath">{text}</textPath>
+                  </text>
+                </svg>
+              </figure>
+            </div>
           </div>
           {/* <div className="relative max-h-[700px]">
             <img className="w-full h-full" src={wedding} alt="" />
@@ -222,7 +381,6 @@ function App() {
               </article>
             </article>
           </div>
-
           {/* 일시, 장소, 캘린더 */}
           <div id="scroll-section-2" className="scroll-section">
             <article className="flex flex-col justify-center items-center px-4 py-10">
@@ -250,32 +408,34 @@ function App() {
                   })}
                 </div>
 
-                {calendar.map((week, index) => {
-                  return (
-                    <div className="grid grid-cols-7" key={`week-${index}`}>
-                      {week.map((day, idx) => {
-                        return (
-                          <div
-                            className="flex justify-center items-center leading-10"
-                            key={`day-${idx}`}
-                          >
+                <div>
+                  {calendar?.map((week, index) => {
+                    return (
+                      <div className="grid grid-cols-7" key={`week-${index}`}>
+                        {week.map((day, idx) => {
+                          return (
                             <div
-                              className={` ${
-                                day == weddingDay
-                                  ? "rounded-[50%] w-7 h-7 leading-7 text-white bg-light-pink"
-                                  : idx % 7 == 0
-                                  ? "text-light-pink"
-                                  : ""
-                              }`}
+                              className="flex justify-center items-center leading-10"
+                              key={`day-${idx}`}
                             >
-                              {day}
+                              <div
+                                className={` ${
+                                  day == weddingDay
+                                    ? "rounded-[50%] w-7 h-7 leading-7 text-white bg-light-pink"
+                                    : idx % 7 == 0
+                                    ? "text-light-pink"
+                                    : ""
+                                }`}
+                              >
+                                {day}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </article>
           </div>
@@ -318,7 +478,6 @@ function App() {
               </div>
             </article>
           </div>
-
           <footer className="py-6 text-center text-[0.6rem]">
             <p>Copyright 2025</p>
           </footer>
