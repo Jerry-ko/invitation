@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
 
@@ -29,6 +29,8 @@ function App() {
   const [text, setText] = useState(initText);
   const [maxTextWidth, setMaxTextWidth] = useState(0);
   const [movedDistance, setMovedDistance] = useState(0);
+  const [coods, setCoods] = useState<null | { lat: number; lng: number }>(null);
+  const [name, setName] = useState(null);
 
   let yOffset = 0;
   let prevScrollHeight = 0;
@@ -244,31 +246,66 @@ function App() {
     };
   }, [sceneInfo, currentScene]);
 
-  //네이버 지도 geocode api 사용할 시 서버 구성해야함
+  // effect 안에서 api 호출하려면?????
+  // todo: react router 나 react query로 수정
+  // 정리함수??
+  //accept 유무 차이
+  //urlsearchparams
+  useEffect(() => {
+    async function getCoorinate() {
+      // const address = new URLSearchParams("address=도움6로 42");
+      const address = "도움6로 42";
+      // const address = "서울시청";
+
+      try {
+        const result = await fetch(`/api/geo?address=${address}`, {
+          method: "get",
+        });
+
+        if (result.ok) {
+          const response = await result.json();
+
+          setCoods({ lng: response.lng, lat: response.lat });
+          setName(response.name);
+        } else {
+          //에러 처리 어떻게 할지 고민
+          console.log(`api 호출 실패: ${result.statusText}`);
+        }
+      } catch (error) {
+        console.error(`요청 중 오류 발생: ${error}`);
+      }
+    }
+
+    getCoorinate();
+  }, []);
+
+  //scipt.src, async ..살펴보기
   useEffect(() => {
     const script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
-    script.async = true;
+    (script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`),
+      (script.async = true);
     script.onload = () => {
-      const map = new naver.maps.Map("map", {
-        center: new naver.maps.LatLng(37.3595704, 127.105399),
-        zoom: 10,
-      });
-      var marker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(37.3595704, 127.105399),
-        map: map,
-      });
+      if (coods) {
+        const map = new naver.maps.Map("map", {
+          center: new naver.maps.LatLng(coods.lat, coods.lng),
+          zoom: 15,
+        });
+        var marker = new naver.maps.Marker({
+          position: new naver.maps.LatLng(coods.lat, coods.lng),
+          map: map,
+        });
+      }
     };
     document.body.appendChild(script);
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
+  }, [coods]);
 
   const clickNaverMap = () => {
     window.open(
-      "http://map.naver.com/p?title=그랜드워커힐&lng=127.11170683593&lat=37.5586287308609&zoom=15&type=0&c=15.00,0,0,0,dh",
+      `http://map.naver.com/p/search/${encodeURIComponent("아펠가모 광화문")}`,
       "_blank"
     );
   };
