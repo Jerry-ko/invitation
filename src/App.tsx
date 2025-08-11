@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
+const baseUrl = import.meta.env.VITE_API_URL;
 
 const initSceneInfo = [
   {
@@ -201,50 +202,51 @@ function App() {
   //살펴보기기기기
   // todo: 커스텀 훅으로 추출
   useEffect(() => {
-    function scrollLoop() {
-      prevScrollHeight = 0;
-
-      for (let i = 0; i < currentScene; i++) {
-        prevScrollHeight += sceneInfo[i]?.scrollHeight;
-      }
-
-      if (yOffset > prevScrollHeight + sceneInfo[currentScene]?.scrollHeight) {
-        setCurrentScene(currentScene + 1);
-      }
-      if (yOffset < prevScrollHeight) {
-        if (currentScene == 0) return;
-        setCurrentScene(currentScene - 1);
-      }
-    }
-    function handleScroll() {
-      yOffset = window.scrollY;
-
-      scrollLoop();
-
-      if (yOffset > sceneInfo[0].scrollHeight * 0.3) {
-        document.getElementById("scroll-section-1")?.classList.add("fade-up");
-      }
-
-      if (yOffset > sceneInfo[0].scrollHeight) {
-        document.getElementById("scroll-section-2")?.classList.add("fade-up");
-      }
-
-      if (
-        yOffset >
-        sceneInfo[0].scrollHeight +
-          sceneInfo[2].scrollHeight +
-          sceneInfo[1].scrollHeight * 0.6
-      ) {
-        document.getElementById("scroll-section-3")?.classList.add("fade-up");
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll);
-
+    handleScroll();
+    document.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("scroll", handleScroll);
     };
-  }, [sceneInfo, currentScene]);
+  }, []);
+
+  function scrollLoop() {
+    prevScrollHeight = 0;
+
+    for (let i = 0; i < currentScene; i++) {
+      prevScrollHeight += sceneInfo[i]?.scrollHeight;
+    }
+
+    if (yOffset > prevScrollHeight + sceneInfo[currentScene]?.scrollHeight) {
+      setCurrentScene(currentScene + 1);
+    }
+    if (yOffset < prevScrollHeight) {
+      if (currentScene == 0) return;
+      setCurrentScene(currentScene - 1);
+    }
+  }
+
+  function handleScroll() {
+    yOffset = window.scrollY;
+
+    scrollLoop();
+
+    if (yOffset > sceneInfo[0].scrollHeight * 0.3) {
+      document.getElementById("scroll-section-1")?.classList.add("fade-up");
+    }
+
+    if (yOffset > sceneInfo[0].scrollHeight) {
+      document.getElementById("scroll-section-2")?.classList.add("fade-up");
+    }
+
+    if (
+      yOffset >
+      sceneInfo[0].scrollHeight +
+        sceneInfo[2].scrollHeight +
+        sceneInfo[1].scrollHeight * 0.6
+    ) {
+      document.getElementById("scroll-section-3")?.classList.add("fade-up");
+    }
+  }
 
   // effect 안에서 api 호출하려면?????
   // todo: react router 나 react query로 수정
@@ -254,8 +256,8 @@ function App() {
   useEffect(() => {
     async function getCoorinate() {
       // const address = new URLSearchParams("address=도움6로 42");
-      const address = "도움6로 42";
-      // const address = "서울시청";
+      const address = "도곡로62길 5-14";
+      // const address = "분당구 불정로 6";
 
       try {
         const result = await fetch(`/api/geo?address=${address}`, {
@@ -264,6 +266,7 @@ function App() {
 
         if (result.ok) {
           const response = await result.json();
+          console.log("res", response);
 
           setCoods({ lng: response.lng, lat: response.lat });
           setName(response.name);
@@ -280,26 +283,51 @@ function App() {
   }, []);
 
   //scipt.src, async ..살펴보기
+  // useEffect(() => {
+  //   const script = document.createElement("script");
+  //   script.type = "text/javascript";
+  //   (script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`),
+  //     (script.async = true);
+  //   script.onload = () => {
+  //     if (coods) {
+  //       const map = new naver.maps.Map("map", {
+  //         center: new naver.maps.LatLng(coods.lat, coods.lng),
+  //         zoom: 15,
+  //       });
+  //       var marker = new naver.maps.Marker({
+  //         position: new naver.maps.LatLng(coods.lat, coods.lng),
+  //         map: map,
+  //       });
+  //     }
+  //   };
+  //   document.body.appendChild(script);
+  //   return () => {
+  //     document.body.removeChild(script);
+  //   };
+  // }, [coods]);
+
   useEffect(() => {
+    const mapDiv = document.getElementById("map");
     const script = document.createElement("script");
     script.type = "text/javascript";
-    (script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`),
-      (script.async = true);
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
+    script.defer = true;
     script.onload = () => {
-      if (coods) {
-        const map = new naver.maps.Map("map", {
-          center: new naver.maps.LatLng(coods.lat, coods.lng),
-          zoom: 15,
-        });
-        var marker = new naver.maps.Marker({
-          position: new naver.maps.LatLng(coods.lat, coods.lng),
-          map: map,
-        });
-      }
+      if (!coods || !mapDiv) return;
+      const map = new naver.maps.Map(mapDiv, {
+        center: new naver.maps.LatLng(coods.lat, coods.lng),
+        zoom: 15,
+      });
+
+      var marker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(coods.lat, coods.lng),
+        map: map,
+      });
     };
-    document.body.appendChild(script);
+    document.head.appendChild(script);
+
     return () => {
-      document.body.removeChild(script);
+      document.head.removeChild(script);
     };
   }, [coods]);
 
@@ -343,8 +371,6 @@ function App() {
                   <div className="mx-auto text-[4rem] leading-18 text-center text-main-pink font-dancing">
                     <p className="slideIn"> we're getting</p>
                     <p className="slideIn"> married!</p>
-
-                    {/* we're getting <br /> married! */}
                   </div>
                 </div>
 
